@@ -7,12 +7,11 @@ def dic_competencias_por_matriz(filename):
     cont = 0
     for linea in archivo:
         if cont > 0:
-            #print(linea)
-            linea = linea.strip().split('\t')            
+            linea = linea.strip().split('\t')
+            
             texto_competencia = linea[0]
             texto_matriz = linea[7]
-            # Muestro los texto matriz, texto competencia y el numero de linea por empleado
-            # print('texto_matriz, texto_competencia, cont',texto_matriz, texto_competencia, cont)
+            #print(texto_matriz, texto_competencia)
             #break
             if texto_matriz not in dic_competencias_por_matriz:
                 dic_competencias_por_matriz[texto_matriz] = set()
@@ -52,11 +51,10 @@ def file_to_dic(filename):
                 cedula = '*'+nombres[0:7]+'*'
             if cedula not in trabajadores:
                 no_veces_aparicion_cedula = 1
-                trabajadores[cedula] = ['', '', '', '','','', []]
+                trabajadores[cedula] = ['', '', '', '','', []]
                 trabajadores[cedula][0] = nombres
                 trabajadores[cedula][1] = no_veces_aparicion_cedula
                 trabajadores[cedula][4] = texto_matriz
-                trabajadores[cedula][5] = area
             else:
                 # Esta linea de abajo hace la magia con el numero
                 # de veces de aparicion de la cedula
@@ -71,8 +69,8 @@ dic_trabajadores = file_to_dic('Archivo Sur_enviar.txt')
 # Esta Funcion intenta comparar las competencias de los trabajadores
 # con las competencias existentes en cada matriz
 def complementar_competencias(dic_trabajadores, dic_competencias_por_matriz):
-    veces_if_iniciales = 0
-    veces_if_restantes = 0
+    veces_if = 0
+    veces_else = 0
     veces_else_if = 0
     cont4 = 0
     cont3 = 0
@@ -80,10 +78,8 @@ def complementar_competencias(dic_trabajadores, dic_competencias_por_matriz):
     dic_trabajadores_complementado = {}
     for texto_matriz, conjunto_competencias_por_matriz in dic_competencias_por_matriz.items():
         cont = 0
-        for cedula, val in dic_trabajadores.items():
-            nombres = val[0]
+        for cedula, val in dic_trabajadores.items():            
             texto_matriz_por_empleado = val[4]
-            texto_area_por_empleado = val[5]
             lista_tupla_competencias_por_empleado = val[-1]
             if texto_matriz == texto_matriz_por_empleado:
                 cont += 1                
@@ -91,45 +87,43 @@ def complementar_competencias(dic_trabajadores, dic_competencias_por_matriz):
                 conjunto_competencias_restantes_por_trabajador = set()
                 conjunto_competencias_iniciales_por_trabajador = set()
                 for competencia_por_matriz in conjunto_competencias_por_matriz:
-                    match = False
+                    actual = requerido = ''
+                    flag = flag2 = False                    
                     for tupla_competencia_por_empleado in lista_tupla_competencias_por_empleado:
 
                         # Print para verificar el numero de veces que se recorre la misma competencia
                         # por cada competencia del trabajador (diccionario)
-                        #print(competencia_por_matriz, tupla_competencia_por_empleado, cedula)
+                        print(competencia_por_matriz, tupla_competencia_por_empleado, cedula)
 
                         # Creacion del elemento del diccionario unico
                         if cedula not in dic_trabajadores_complementado:
-                            dic_trabajadores_complementado[cedula] = ['','','',[]]
+                            dic_trabajadores_complementado[cedula] = []
                         
                         # Pregunto si la competencia por matriz se encuentra en la tupla competencia por empleado
                         if competencia_por_matriz in tupla_competencia_por_empleado:
-                            veces_if_iniciales += 1
+                            veces_if += 1
                             
                             conjunto_competencias_iniciales_por_trabajador.add(tupla_competencia_por_empleado[0])
                             #print(texto_matriz+'\n',competencia_por_matriz, tupla_competencia_por_empleado, '\n')
-                            dic_trabajadores_complementado[cedula][-1].append(tupla_competencia_por_empleado)
+                            dic_trabajadores_complementado[cedula].append(tupla_competencia_por_empleado)
                             #print(tupla_competencia_por_empleado)
-                            match = True
-                        dic_trabajadores_complementado[cedula][0] = texto_matriz_por_empleado
-                        dic_trabajadores_complementado[cedula][1] = texto_area_por_empleado
-                        dic_trabajadores_complementado[cedula][2] = nombres
+                            flag2 = True
                         
-                    if match == False:
-                        veces_if_restantes += 1
-                        conjunto_competencias_restantes_por_trabajador.add(tupla_competencia_por_empleado[0])
-                        tupla_encerada = (tupla_competencia_por_empleado[0], 1, 1)
-                        dic_trabajadores_complementado[cedula][-1].append(tupla_encerada)
-                    match = False
-
+                        if flag2 == False:                                
+                            conjunto_competencias_restantes_por_trabajador.add(competencia_por_matriz)
+                            tupla_encerada = (competencia_por_matriz, 1, 1)
+                            dic_trabajadores_complementado[cedula].append(tupla_encerada)
+                            veces_else_if += 1
+                    flag2 = False                                            
                     """conjunto_competencias_restantes_por_trabajador.add(competencia_por_matriz)
                     tupla_encerada = (competencia_por_matriz, 1, 1)
                     dic_trabajadores_complementado[cedula].append(tupla_encerada)"""
 
                     
 
-                """print('\nNumero de veces que entra al if_iniciales\n', veces_if_iniciales)
-                print('\nNumero de veces que entra al if_restantes\n', veces_if_restantes)                                
+                print('\nNumero de veces que entra al if\n', veces_if)
+                #print('\nNumero de veces que entra al else\n', veces_else)
+                #print('\nNumero de veces que entra a else if\n', veces_else_if)
                 
                 print('\nlen(lista_tupla_competencias_por_empleado)\n',len(lista_tupla_competencias_por_empleado))
                 
@@ -140,68 +134,35 @@ def complementar_competencias(dic_trabajadores, dic_competencias_por_matriz):
                 print('\nconjunto_competencias_restantes_por_trabajador - conjunto_competencias_iniciales_por_trabajador\n', conjunto_competencias_restantes_por_trabajador - conjunto_competencias_iniciales_por_trabajador)                                
                 print('\nlen(conjunto_competencias_restantes_por_trabajador - conjunto_competencias_iniciales_por_trabajador)', len(conjunto_competencias_restantes_por_trabajador - conjunto_competencias_iniciales_por_trabajador))
             
-            # Este break me permite solo leer el primer trabajador del diccionario de trabajadores
-            
+            # Este break me permite solo leer el primer trabajador del diccionario de trabajadores            
+            break
     print('\n{:>20}{:>20}\n{:>20}{:>20}\n{:>20}{:>20}\n'.format('Competencias iniciales del trabajador', len(conjunto_competencias_iniciales_por_trabajador), 'Competencias restantes del trabajador', len(conjunto_competencias_restantes_por_trabajador - conjunto_competencias_iniciales_por_trabajador), 'Existentes + Restantes', len(conjunto_competencias_iniciales_por_trabajador) + len(conjunto_competencias_restantes_por_trabajador - conjunto_competencias_iniciales_por_trabajador)))
-    """
+    
     return dic_trabajadores_complementado
 
 # Creo el diccionario de trabajadores complementado
 dic_trabajadores_complementado = complementar_competencias(dic_trabajadores, dic_competencias_por_matriz)
-
+# print(dic_trabajadores_complementado)
 
 # Funcion que me permite verificar el diccionario de los trabajadores con todas las competencias complementadas
 def verificar_diccionario_trabajadores_competencias_complementadas(dic_trabajadores_complementado):
     print('Verificacion del diccionario de datos de los trabajadores complementando competencias')
     for k, v in dic_trabajadores_complementado.items():
         # print(k, v)
-        print('k, len(v[-1])',k, len(v[-1]))      
+        print('k, len(v)',k, len(v))
+        break
+# verificar_diccionario_trabajadores_competencias_complementadas(dic_trabajadores_complementado)
+
 
 # Esta funcion me permite verificar el numero de competencias por matriz
 def verificar_numero_competencias_por_matriz(dic_competencias_por_matriz):
-    print('\nVerificacion del numero de competencias por matriz')
-    print('Nombre de Matriz', 'Numero de competencias')    
+    print('Verificacion del numero de competencias por matriz')
+    print('Nombre de Matriz', 'Numero de competencias')
+    print('\n')
     for k,v in dic_competencias_por_matriz.items():    
         #print(k, v)
         print('{} {}'.format(k, len(v)))
-
-# Esta funcion me permite escribir en un archivo los datos de los trabajadores
-# con las competencias complementadas
-def dic_trabajadores_complementado_to_file(dic_trabajadores_complementado, filename):
-    archivo = open(filename, 'w+', encoding = 'utf-8')
-    line = '{}, {}, {}, {}, {}, {}, {}\n'.format('texto_competencia', 'actual', 'deseado', 'cedula', 'nombres', 'area', 'texto_matriz')
-    archivo.write(line)
-    for k, v in dic_trabajadores_complementado.items():
-        cedula = k
-        texto_matriz = v[0]
-        area = v[1]
-        nombres = v[2]
-        for lista_tupla_competencias_por_trabajador in v[-1]:
-            texto_competencia = lista_tupla_competencias_por_trabajador[0]
-            actual = lista_tupla_competencias_por_trabajador[1]
-            deseado = lista_tupla_competencias_por_trabajador[2]
-            line = '{}, {}, {}, {}, {}, {}, {}\n'.format(texto_competencia, actual, deseado, cedula, nombres, area, texto_matriz)
-            archivo.write(line)
-    archivo.close()
-
-# Creo el diccionario de trabajadores complementado
-dic_trabajadores_complementado = complementar_competencias(dic_trabajadores, dic_competencias_por_matriz)
-# print('dic_trabajadores_complementado',dic_trabajadores_complementado)
-
-# ## La siguiente verificacion me permite conocer si todos los trabajadores de una misma linea tienen el mismo numero de competencias
-# ## Bastaria con comparar el numero de competencias de cada empleado con el numero de competencias que posee la matriz 
-
-# # Verifico el diccionario de los trabajadores con las competencias complementadas
-# verificar_diccionario_trabajadores_competencias_complementadas(dic_trabajadores_complementado)
-# # Verifico el numero de competencias por matriz
-# verificar_numero_competencias_por_matriz(dic_competencias_por_matriz)
-
-# Escribo el archivo con los datos de los trabajadores con
-# sus competencias complementadas
-dic_trabajadores_complementado_to_file(dic_trabajadores_complementado, "datos_trabajadores_competencias_complementadas.csv")
-
-
-
+verificar_numero_competencias_por_matriz(dic_competencias_por_matriz)
 # Funcion que se encarga de generar un reporte acerca de 
 # si los datos estan correctamente registrados
 # si algun empleado aun no posee cedula o 
